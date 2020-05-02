@@ -6,14 +6,17 @@ Given a reddit comment, classify which gilding, if any, it would receive?
 
 ## Plan:
 
-Two models: One with one hot encoded and the other with ordinal (since each gilding is better
-Try gradient boosting.
+Two models: One with one hot encoded and the other with ordinal (since each gilding is better than the previous, i.e. silver better than none and gold better than silver).
+
+Try gradient boosting for experimentation and as a learning experience. Implement the model on a larger dataset from r/datasets.
 
 ### Step 1: Choose subreddit to scrape data from:
 
 We chose 'r/gaming' for scraping the data. This is because of its popularity (4th in terms of subscriber count, Redditlist.com, April 2020) and our own familiarity with the subreddit.
 
-We also theorized that a popular subreddit would be more likely to have more comments (and thus, more gilded comments). Based on initial scraping tests, we decided on scraping for ~week (or till collecting more then 500k comments).
+We also theorized that a popular subreddit would be more likely to have more comments and thus, more gilded comments. Based on initial scraping tests, we decided on scraping for ~week (or till collecting more then 500k comments).
+
+Update: We have since decided to continue scraping (more than a million records now).
 
 ### Step 2: Extract the data
 
@@ -44,7 +47,9 @@ Number of upvotes, link karma and comment karma of the comment author. Comment t
   - Since the data is from 'r/gaming', some relevant topics would include pc games, console games. Interesting qn to ask: Do comments about pc gaming receive more upvotes? What about console games? For the future, collect original thread data as well (as of the time of adding this, scraping has ended).
   - Semi supervised approach; topic modeling to extract thread topic and build a model to classify the threads solely based on thread data. Build another model with concatenated data of thread attributes and comment attributes (use thread id to associate comments in one thread).
 
-- Normalize the numerical for a better model (Note: Standardization might be a better approach since comments with gildings are outliers due to their rarity). 
+- Normalize the numerical features for a better model (Note: Standardization might be a better approach since comments with gildings are outliers due to their rarity). 
 - Since each level of guilding (none -> silver -> gold) is better than the other, a model with ordinal targets might be more appropriate. Try another model with one hot encoded targets.
 
-
+- Initial scraping was completed on 4/17. As expected, the dataset was heavily imbalanced (out of ~500k comments, there were only ~550 gilded comments). Several approaches can be taken to address the imbalance:
+  - Continue scraping (We rewrote the python script to continue scraping (possibly get more gilded comments).
+  - Oversample/undersample, SMOTE techniques since there's a high imbalance between gilded comments and non-gilded ones, even more so than we expected. Ex: ~600 gilded for ~500k non-gilded comments. Hence we decided to continue scraping in the hopes of collecting bit more data.
