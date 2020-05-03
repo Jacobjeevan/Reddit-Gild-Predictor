@@ -4,3 +4,4 @@ original_data/
 meetings/
 __pycache__/
 .DS_Store
+script.py
