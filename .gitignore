@@ -5,3 +5,4 @@ meetings/
 __pycache__/
 .DS_Store
 script.py
+.ipynb_checkpoints/
