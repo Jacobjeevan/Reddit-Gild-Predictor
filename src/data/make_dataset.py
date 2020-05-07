@@ -36,7 +36,6 @@ class Scraper:
         self.reddit = praw.Reddit()
         self.subreddit = self.reddit.subreddit(sub_reddit).top(limit=None)
         self.savepath = "../../data/raw/"
-        self.temppoint = 0
 
     def output_filename(self):
         """Simple function to quickly fetch directory path and return the
@@ -120,27 +119,6 @@ class Scraper:
                 for comment in all_comments:
                     self.retrieveComment(comment)
                 self.save_files()
-
-    def savegilds(self):
-        #length  = len(self.gildings["comment_ids"])
-        length = self.temppoint
-        if (length < self.checkpoint):
-            pass
-        else:
-            t = time.localtime()
-            current_time = time.strftime("%H:%M:%S", t)
-            print("Collected {} records so far; Saving in progress. Time now: {}".format(length, current_time))
-            com_data = pd.DataFrame(self.comdata)
-            gildings_f = pd.DataFrame(self.gildings)
-            com_data.to_csv(f"{self.output_filename()}/new_comment_data.csv", mode="w", index=False)
-            gildings_f.to_csv(f"{self.output_filename()}/new_gildings_data.csv", mode="w", index=False)
-            self.checkpoint += self.interval
-        if (length > self.minimum):
-            exectime = ((time.time() - self.exectime ) / (60*60))
-            print("Collected {} records so far; Total execution time: {} hours".format(length, exectime))
-            self.exit_conditions()
-
-
 
 
     def exit_conditions(self):
