@@ -1,13 +1,12 @@
 #! usr/bin/env python3
 
-from os.path import isfile
 import sys
 import os
-import pprint
 import praw
 import time
 import argparse
 import pandas as pd
+from pathlib import Path
 
 # Get credentials from DEFAULT instance in praw.ini
 
@@ -20,7 +19,7 @@ class Scraper:
         self.checkpoint = checkpoint
         self.interval = checkpoint
         self.minimum = minimum
-        # By default, save everytime 5000 new comments are collected.
+        # By default, save everytime 10000 new comments are collected.
         if self.checkpoint is None:
             self.checkpoint = 10000
             self.interval = 10000
@@ -29,14 +28,24 @@ class Scraper:
         if self.minimum < self.checkpoint:
             print("The minimum number (default: 200k) of records has to larger than checkpoint (default: 10k)")
             sys.exit()
-        self.commentids = pd.read_csv("original_data/commentids.csv")["0"].tolist()
         self.commentdata = {"comment_body": [],
                             "upvotes": [], "comment_ids": [], "author_ids": []}
-        self.gildings = {"comment_ids": [], "gilds": [], "numgilds": []}
+        self.gildings = {"comment_ids": [], "gilds": []}
         self.author = {"author_ids": [], "comment_karma": [],
-                       "link_karma": [], "created_utc": [], "is_premium": []}
+                       "link_karma": [], "created_utc": [], "is_premium": [], "comment_ids" : [], "created_utc": [], "edited" : []}
         self.reddit = praw.Reddit()
         self.subreddit = self.reddit.subreddit(sub_reddit).top(limit=None)
+        self.savepath = "../../data/raw/"
+        self.temppoint = 0
+
+    def output_filename(self):
+        """Simple function to quickly fetch directory path and return the
+        right filepath for saving files.
+        Also creates the save folder if it doesn't already exist"""
+        dirname = os.path.dirname(__file__)
+        Path(os.path.join(dirname, self.savepath)).mkdir(parents=True, exist_ok=True)
+        return os.path.join(dirname, self.savepath)
+
 
     def retrieveUser(self, comment):
         """Takes in comment object as a parameter, which is used to obtain author information such as:
@@ -50,6 +59,11 @@ class Scraper:
         self.author["created_utc"].append(
             comment.author.created_utc)
         self.author["is_premium"].append(comment.author.is_gold)
+
+    def retrieveGilds(self, comment):
+        self.gildings["comment_ids"].append(comment.id)
+        self.gildings["gilds"].append(comment.gildings)
+
 
     def retrieveComment(self, comment):
         """Takes in comment object as a parameter, which is used to obtain comment id, comment body
@@ -81,18 +95,18 @@ class Scraper:
                     self.retrieveUser(comment)
                 except: 
                     #Exception as e:
-                    #pprint.pprint(vars(comment.author))
                     #print(e)
                     return None
             self.commentdata["comment_ids"].append(comment.id)
             self.commentdata["comment_body"].append(comment.body)
             self.commentdata["upvotes"].append(comment.score)
             self.commentdata["author_ids"].append(comment.author_fullname[3:])
-            if comment.gilded > 0:
-                self.gildings["comment_ids"].append(comment.id)
-                self.gildings["gilds"].append(comment.gildings)
-                self.gildings["numgilds"].append(comment.gilded)
-                    
+            self.commentdata["comment_ids"].append(comment.id)
+            self.commentdata["created_utc"].append(comment.created_utc)
+            self.commentdata["edited"].append(comment.edited)
+            if comment.gildings:
+                self.retrieveGilds(comment)
+                
 
     def addTo(self):
         """Takes the subreddit input from user as a parameter, calls respective method for retrieving relevant data."""
@@ -100,15 +114,34 @@ class Scraper:
         for submission in subreddit:
             if (submission.id not in self.ids):
                 self.ids.append(submission.id)
-                comment = submission.comments[0]
-                if comment.id in self.commentids:
-                    print(f"This thread has already been collected: {submission.num_comments}")
-                else:
-                    submission.comments.replace_more(limit=None)
-                    all_comments = submission.comments.list()
-                    for comment in all_comments:
-                        self.retrieveComment(comment)
-                        self.save_files()
+                print(f"Collecting: {submission.num_comments} comments")
+                submission.comments.replace_more(limit=None)
+                all_comments = submission.comments.list()
+                for comment in all_comments:
+                    self.retrieveComment(comment)
+                self.save_files()
+
+    def savegilds(self):
+        #length  = len(self.gildings["comment_ids"])
+        length = self.temppoint
+        if (length < self.checkpoint):
+            pass
+        else:
+            t = time.localtime()
+            current_time = time.strftime("%H:%M:%S", t)
+            print("Collected {} records so far; Saving in progress. Time now: {}".format(length, current_time))
+            com_data = pd.DataFrame(self.comdata)
+            gildings_f = pd.DataFrame(self.gildings)
+            com_data.to_csv(f"{self.output_filename()}/new_comment_data.csv", mode="w", index=False)
+            gildings_f.to_csv(f"{self.output_filename()}/new_gildings_data.csv", mode="w", index=False)
+            self.checkpoint += self.interval
+        if (length > self.minimum):
+            exectime = ((time.time() - self.exectime ) / (60*60))
+            print("Collected {} records so far; Total execution time: {} hours".format(length, exectime))
+            self.exit_conditions()
+
+
+
 
     def exit_conditions(self):
         """Prompts the user for exit conditions. Enter N and a new minimum in the following prompt to continue scraping."""
@@ -146,9 +179,9 @@ class Scraper:
             data_f = pd.DataFrame(self.commentdata)
             authors_f = pd.DataFrame(self.author)
             gildings_f = pd.DataFrame(self.gildings)
-            data_f.to_csv('data/raw/comment_data.csv', mode="w", index=False)
-            authors_f.to_csv('data/raw/author_data.csv', mode="w", index=False)
-            gildings_f.to_csv('data/raw/gildings_data.csv', mode="w", index=False)
+            data_f.to_csv(f"{self.output_filename()}/comment_data.csv", mode="w", index=False)
+            authors_f.to_csv(f"{self.output_filename()}/author_data.csv", mode="w", index=False)
+            gildings_f.to_csv(f"{self.output_filename()}/gildings_data.csv", mode="w", index=False)
             self.checkpoint += self.interval
         if (length > self.minimum):
             exectime = ((time.time() - self.exectime ) / (60*60))
@@ -166,8 +199,6 @@ def main():
     parser.add_argument("-c", "--checkpoint",
                         help="Save the file every c comments", type=int)
     args = parser.parse_args()
-    dirname = os.path.dirname(__file__)
-    os.makedirs(os.path.join(dirname, "data/raw"), exist_ok=True)
     if (args.minimum and args.checkpoint):
         Scraper(args.sub_reddit, checkpoint=args.checkpoint,
                  minimum=args.minimum).addTo()
