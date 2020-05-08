@@ -25,12 +25,13 @@ class Scraper:
                 "The minimum number (default: 200k) of records has to larger than checkpoint (default: 10k)")
             sys.exit()
         self.threaddata = {"thread_ids": [], "title": [], "author_ids": [
-        ], "upvotes": [], "gildings": [], "created_utc": [], "premium" : [], "num_comments" : []}
+        ], "upvotes": [], "gildings": [], "created_utc": [], "premium": [], "num_comments": [], "edited": []}
         self.commentdata = {"comment_body": [],
-                            "ups": [], "downs" : [], "comment_ids": [], "author_ids": []}
+                            "ups": [], "downs": [], "comment_ids": [], 
+                            "author_ids": [], "created_utc": [], "edited": []}
         self.gildings = {"comment_ids": [], "gildings": []}
         self.author = {"author_ids": [], "comment_karma": [],
-                       "link_karma": [], "created_utc": [], "is_premium": [], "comment_ids": [], "created_utc": [], "edited": []}
+                       "link_karma": [], "created_utc": [], "is_premium": []}
         self.reddit = praw.Reddit()
         self.subreddit = self.reddit.subreddit(args.subreddit).top(limit=None)
         self.savepath = "../../data/raw/"
@@ -98,7 +99,6 @@ class Scraper:
             self.commentdata["ups"].append(comment.ups)
             self.commentdata["downs"].append(comment.downs)
             self.commentdata["author_ids"].append(comment.author_fullname[3:])
-            self.commentdata["comment_ids"].append(comment.id)
             self.commentdata["created_utc"].append(comment.created_utc)
             self.commentdata["edited"].append(comment.edited)
             if comment.gildings:
@@ -106,6 +106,7 @@ class Scraper:
 
     def retrieveThread(self, submission):
         self.threaddata["author_ids"].append(submission.author_fullname[3:])
+        self.threaddata["thread_ids"].append(submission.id)
         self.threaddata["title"].append(submission.title)
         self.threaddata["upvotes"].append(submission.ups)
         self.threaddata["edited"].append(submission.edited)
@@ -118,15 +119,14 @@ class Scraper:
         """Takes the subreddit input from user as a parameter, calls respective method for retrieving relevant data."""
         subreddit = self.subreddit
         for submission in subreddit:
-            if (submission.id not in self.ids):
+            if (submission.id not in self.threaddata["thread_ids"]):
                 self.retrieveThread(submission)
-                self.ids.append(submission.id)
                 print(f"Collecting: {submission.num_comments} comments")
                 submission.comments.replace_more(limit=None)
                 all_comments = submission.comments.list()
                 for comment in all_comments:
                     self.retrieveComment(comment)
-                self.save_files()
+                    self.save_files()
 
     def exit_conditions(self):
         """Prompts the user for exit conditions. Enter N and a new minimum in the following prompt to continue scraping."""
@@ -164,6 +164,7 @@ class Scraper:
             current_time = time.strftime("%H:%M:%S", t)
             print("Collected {} records so far; Saving in progress. Time now: {}".format(
                 length, current_time))
+            print(self.threaddata)
             threaddata = pd.DataFrame(self.threaddata)
             commentdata = pd.DataFrame(self.commentdata)
             authors = pd.DataFrame(self.author)
