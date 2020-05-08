@@ -27,7 +27,7 @@ class Scraper:
         self.threaddata = {"thread_ids": [], "title": [], "author_ids": [
         ], "upvotes": [], "gildings": [], "created_utc": [], "premium" : [], "num_comments" : []}
         self.commentdata = {"comment_body": [],
-                            "upvotes": [], "comment_ids": [], "author_ids": []}
+                            "ups": [], "downs" : [], "comment_ids": [], "author_ids": []}
         self.gildings = {"comment_ids": [], "gildings": []}
         self.author = {"author_ids": [], "comment_karma": [],
                        "link_karma": [], "created_utc": [], "is_premium": [], "comment_ids": [], "created_utc": [], "edited": []}
@@ -95,7 +95,8 @@ class Scraper:
                     return None
             self.commentdata["comment_ids"].append(comment.id)
             self.commentdata["comment_body"].append(comment.body)
-            self.commentdata["upvotes"].append(comment.score)
+            self.commentdata["ups"].append(comment.ups)
+            self.commentdata["downs"].append(comment.downs)
             self.commentdata["author_ids"].append(comment.author_fullname[3:])
             self.commentdata["comment_ids"].append(comment.id)
             self.commentdata["created_utc"].append(comment.created_utc)
@@ -118,6 +119,7 @@ class Scraper:
         subreddit = self.subreddit
         for submission in subreddit:
             if (submission.id not in self.ids):
+                self.retrieveThread(submission)
                 self.ids.append(submission.id)
                 print(f"Collecting: {submission.num_comments} comments")
                 submission.comments.replace_more(limit=None)
@@ -162,14 +164,17 @@ class Scraper:
             current_time = time.strftime("%H:%M:%S", t)
             print("Collected {} records so far; Saving in progress. Time now: {}".format(
                 length, current_time))
-            data_f = pd.DataFrame(self.commentdata)
-            authors_f = pd.DataFrame(self.author)
-            gildings_f = pd.DataFrame(self.gildings)
-            data_f.to_csv(
+            threaddata = pd.DataFrame(self.threaddata)
+            commentdata = pd.DataFrame(self.commentdata)
+            authors = pd.DataFrame(self.author)
+            gildings = pd.DataFrame(self.gildings)
+            threaddata.to_csv(
+                f"{self.output_filename()}/thread_data.csv", mode="w", index=False)
+            commentdata.to_csv(
                 f"{self.output_filename()}/comment_data.csv", mode="w", index=False)
-            authors_f.to_csv(
+            authors.to_csv(
                 f"{self.output_filename()}/author_data.csv", mode="w", index=False)
-            gildings_f.to_csv(
+            gildings.to_csv(
                 f"{self.output_filename()}/gildings_data.csv", mode="w", index=False)
             self.checkpoint += self.interval
         if (length > self.minimum):
