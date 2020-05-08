@@ -164,7 +164,6 @@ class Scraper:
             current_time = time.strftime("%H:%M:%S", t)
             print("Collected {} records so far; Saving in progress. Time now: {}".format(
                 length, current_time))
-            print(self.threaddata)
             threaddata = pd.DataFrame(self.threaddata)
             commentdata = pd.DataFrame(self.commentdata)
             authors = pd.DataFrame(self.author)
