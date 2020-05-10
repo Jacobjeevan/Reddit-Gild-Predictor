@@ -91,7 +91,7 @@ class Scraper:
                     self.retrieveUser(comment)
                 except praw.exceptions.PRAWException:
                     return
-            self.commentdata["threads_ids"].append(threadid)
+            self.commentdata["thread_ids"].append(threadid)
             self.commentdata["comment_ids"].append(comment.id)
             self.commentdata["comment_body"].append(comment.body)
             self.commentdata["ups"].append(comment.ups)
