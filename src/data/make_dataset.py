@@ -8,32 +8,31 @@ import argparse
 import pandas as pd
 from pathlib import Path
 
-# Get credentials from DEFAULT instance in praw.ini
-
-
 class Scraper:
 
-    # Checkpoint defines savepoints (save everytime n number of comments are collected).
     def __init__(self, args):
+        """Parse the arguments and initialize the dictionaries for saving the data"""
         self.exectime = time.time()
-        self.ids = []
-        self.checkpoint = args.checkpoint
+        self.checkpoint = args.checkpoint #Checkpoint and Interval are used for saving the data after every n records.
         self.interval = args.checkpoint
-        self.minimum = args.minimum
-        if self.minimum < self.checkpoint:
+        self.minimum = args.minimum # Minimum number of records before exiting the program
+        if self.minimum < self.checkpoint: # Ensure that minimum is greater than checkpoint
             print(
                 "The minimum number (default: 200k) of records has to larger than checkpoint (default: 10k)")
             sys.exit()
+        # Initialize respective dictionaries for storing thread, comment, gildings and author data.
         self.threaddata = {"thread_ids": [], "title": [], "author_ids": [
         ], "upvotes": [], "gildings": [], "created_utc": [], "premium": [], "num_comments": [], "edited": []}
         self.commentdata = {"comment_body": [],
                             "ups": [], "downs": [], "comment_ids": [], 
-                            "author_ids": [], "created_utc": [], "edited": []}
+                            "author_ids": [], "created_utc": [], "edited": [], "thread_ids" : []}
         self.gildings = {"comment_ids": [], "gildings": []}
         self.author = {"author_ids": [], "comment_karma": [],
                        "link_karma": [], "created_utc": [], "is_premium": []}
+        # Initializing the praw reddit object and calling it.
         self.reddit = praw.Reddit()
         self.subreddit = self.reddit.subreddit(args.subreddit).top(limit=None)
+        # Default save path of the data.
         self.savepath = "../../data/raw/"
 
     def output_filename(self):
@@ -59,16 +58,16 @@ class Scraper:
         self.author["is_premium"].append(comment.author.is_gold)
 
     def retrieveGilds(self, comment):
+        '''Takes in the comment object and retrieves comment gild information; adds it to the list'''
         self.gildings["comment_ids"].append(comment.id)
         self.gildings["gildings"].append(comment.gildings)
 
-    def retrieveComment(self, comment):
-        """Takes in comment object as a parameter, which is used to obtain comment id, comment body
-        and gilded information (only retrieved if the comment has received gilds).
+    def retrieveComment(self, comment, threadid):
+        """Takes in comment object as a parameter, which is used to obtain information regarding the comment.
+        Threadid is used to keep track of which comments belong to the thread.
 
-        # Comment_id is used as the shared column for merging comment and gild data.
-
-        Comment object is passed to parseUser function to obtain author information.
+        Comment_id is used as the shared column for merging comment and gild data.
+        Comment object is then passed to parseUser function to obtain author information.
 
         Note that some suspended users will still be retrieved (i.e. their comments will be added, however
         their accounts won't have suspended attribute, but will return a 404 error). We will have to remove
@@ -90,10 +89,9 @@ class Scraper:
             else:
                 try:
                     self.retrieveUser(comment)
-                except:
-                    # Exception as e:
-                    # print(e)
-                    return None
+                except praw.exceptions.PRAWException:
+                    return
+            self.commentdata["threads_ids"].append(threadid)
             self.commentdata["comment_ids"].append(comment.id)
             self.commentdata["comment_body"].append(comment.body)
             self.commentdata["ups"].append(comment.ups)
@@ -105,6 +103,8 @@ class Scraper:
                 self.retrieveGilds(comment)
 
     def retrieveThread(self, submission):
+        """Takes in the submission object and grabs relevant information regarding the thread,
+        including thread author, title, ups/downs, gildings, created time, author premium status etc."""
         self.threaddata["author_ids"].append(submission.author_fullname[3:])
         self.threaddata["thread_ids"].append(submission.id)
         self.threaddata["title"].append(submission.title)
@@ -125,7 +125,8 @@ class Scraper:
                 submission.comments.replace_more(limit=None)
                 all_comments = submission.comments.list()
                 for comment in all_comments:
-                    self.retrieveComment(comment)
+                    # Pass in the submission id as well (so we can keep track of thread <- comments)
+                    self.retrieveComment(comment, submission.id)
                     self.save_files()
 
     def exit_conditions(self):
@@ -164,6 +165,7 @@ class Scraper:
             current_time = time.strftime("%H:%M:%S", t)
             print("Collected {} records so far; Saving in progress. Time now: {}".format(
                 length, current_time))
+            # Convert the relevant data to pandas Dataframe and store on disk as csv files
             threaddata = pd.DataFrame(self.threaddata)
             commentdata = pd.DataFrame(self.commentdata)
             authors = pd.DataFrame(self.author)
@@ -177,6 +179,7 @@ class Scraper:
             gildings.to_csv(
                 f"{self.output_filename()}/gildings_data.csv", mode="w", index=False)
             self.checkpoint += self.interval
+        # If length of records meets the minimum condition, trigger exit function
         if (length > self.minimum):
             exectime = ((time.time() - self.exectime) / (60*60))
             print("Collected {} records so far; Total execution time: {} hours".format(
@@ -185,6 +188,7 @@ class Scraper:
 
 
 def build_parser():
+    """Parser to grab and store command line arguments"""
     MINIMUM = 200000
     CHECKPOINT = 10000
     parser = argparse.ArgumentParser()
