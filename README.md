@@ -14,8 +14,9 @@ Given a reddit comment, classify which gilding, if any, it would receive.
 
 - 05/10: Rerunning scraping due to a bug in the initial collection, as well as collecting more relevant features for future work.
 
-- 05/19: Stopped scraping. Completed initial EDA, would need to engineer more useful features and/or collect more useful attributes
-due to little correlation between target variable and the collected data.
+- 05/19: Stopped scraping. Completed initial EDA.
+
+- 05/20-21: Experimented with Logistic Regression Model (with Resampling). Check notebooks for progress.
 
 ## Plan:
 
