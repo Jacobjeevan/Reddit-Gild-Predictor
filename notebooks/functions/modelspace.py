@@ -10,7 +10,10 @@ class ModelSpace:
         self.Classifier = None
         self.getData = DataStore()
         self.rskf = RepeatedStratifiedKFold(n_splits=10, n_repeats=2, random_state=42)
-        
+    
+    def getDataStore(self):
+        return self.getData
+    
     def setClassifier(self, Classifier):
         self.Classifier = Classifier
         
