@@ -1,8 +1,17 @@
 # Reddit Gild Predictor Plan:
 
-## Objective:
+## Objectives:
 
-Given a reddit comment, classify which gilding, if any, it would receive?
+**First stage**: Given a reddit comment and it's attributes (such as number of upvotes, comment author data), build a model
+to classify if it's a gilded comment or not.
+
+Optional: Repeat first stage to predict number of gildings received (regression problem). Could also do the same with number of upvotes.
+
+**Second stage**: Repeat, but for multiclass classification (gold, silver or no gildings)
+
+**Third stage**: Repeat first and second stages, but use NLP techniques (Using comment body for classification)
+
+**Fourth stage**: Use a model to combine results from both first/second and third stages.
 
 ## Step 1: Choose subreddit to scrape data from:
 
@@ -63,7 +72,19 @@ Data was saved in CSV format.
 - Develop a more complex model
   - Want to try experimenting with Decision Trees and particularly Gradient Boosted Trees as a learning experience.
 
-### Current:
+### Progress History:
+
+- 04/17: Data scraping completed (Initial)
+
+- 04/18: Decided on continue scraping based on initial analysis due to higher than expected class imbalance (gilded vs non gilded comments).
+
+- 05/03: Collected 1.5 million comments
+
+- 05/10: Rerunning scraping due to a bug in the initial collection, as well as collecting more relevant features for future work.
+
+- 05/19: Stopped scraping. Completed initial EDA.
+
+### Notes:
 
 - Initial scraping was completed on 4/17. As expected, the dataset was heavily imbalanced (out of ~500k comments, there were only ~550 gilded comments). Several approaches can be taken to address the imbalance:
   - Continue scraping (We rewrote the python script to continue scraping (possibly get more gilded comments).
