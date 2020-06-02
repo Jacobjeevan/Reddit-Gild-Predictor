@@ -2,12 +2,15 @@
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
-from utils import filter_add_attributes
+from utilities import filter_add_attributes
+from pathlib import Path
+import os
 
 class DataStore:
-    
-    train_data = pd.read_csv("train_data_baseline.csv")
-    test_data = pd.read_csv("test_data_baseline.csv")
+    dirname = os.path.dirname(__file__)
+    filepath = os.path.join(dirname, "../../data/processed/")
+    train_data = pd.read_csv(f"{filepath}/train_data_baseline.csv")
+    test_data = pd.read_csv(f"{filepath}test_data_baseline.csv")
     
     def __init__(self):
         self.xTrain = None
