@@ -13,7 +13,7 @@ class Data:
     def getLength(self):
         pass
 
-    def setSavepath(self, savepath):
+    def setpath(self, savepath):
         self.savepath = savepath
 
     def saveData(self, filename):
@@ -32,3 +32,6 @@ class Data:
 
     def makeSaveDir(self):
         Path(os.path.join(self.dirname, self.savepath)).mkdir(parents=True, exist_ok=True)
+
+    def getData(self):
+        return self.data

@@ -40,10 +40,10 @@ class Scraper:
         self.authordata = AuthorData()
 
     def setDifferentSavepath(self):
-        self.threaddata.setSavepath(self.savepath)
-        self.commentdata.setSavepath(self.savepath)
-        self.gilddata.setSavepath(self.savepath)
-        self.authordata.setSavepath(self.savepath)
+        self.threaddata.setpath(self.savepath)
+        self.commentdata.setpath(self.savepath)
+        self.gilddata.setpath(self.savepath)
+        self.authordata.setpath(self.savepath)
 
     def loadExistingData(self):
         self.threaddata.loadData()
