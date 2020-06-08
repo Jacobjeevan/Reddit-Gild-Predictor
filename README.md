@@ -25,6 +25,13 @@ Optional: Repeat first stage to predict number of gildings received (regression 
 
 - 06/01-02: Second stage refactoring (dividing classes into even more meaningful chunks), cleaning up code.
 
+- 06/04-05: Completed Decision Trees
+
+- 06/06-07: More feature engineering/experimentation (Note: Modified comment age to be calculated in terms of the specific thread it belongs to).
+Reran all models. Logistic Regression performed best.
+
+06/08: Started literature review for outlier detection approach.
+
 ## Plan:
 
 - Plan of action is available under docs/Plan.md
