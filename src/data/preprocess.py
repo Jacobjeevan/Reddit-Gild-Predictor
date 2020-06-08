@@ -4,7 +4,6 @@ from CommentData import CommentData
 from AuthorData import AuthorData
 from GildData import GildData
 from ThreadData import ThreadData
-from datetime import timedelta
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.model_selection import StratifiedShuffleSplit
 from pathlib import Path
@@ -47,34 +46,31 @@ class preprocess:
         self.gilddata = pd.DataFrame(self.gilddata.getData())
         self.authordata = pd.DataFrame(self.authordata.getData())
 
+    def process(self):
+        self.handleErrorCases()
+        self.threaddata.drop(["author_ids"], axis=1, inplace=True)
+        self.mergeData()
+
+    def handleErrorCases(self):
+        self.authordata = self.dropDuplicatesAndEmptyRows(self.authordata, ['author_ids'])
+        self.commentdata = self.dropDuplicatesAndEmptyRows(self.commentdata, ['comment_ids'])
+        self.gilddata = self.dropDuplicatesAndEmptyRows(self.gilddata, ['comment_ids'])
+        self.threaddata = self.dropDuplicatesAndEmptyRows(self.threaddata, ['thread_ids'])
+
     def dropDuplicatesAndEmptyRows(self, data, key_columns):
         df = data.copy()
         df.drop_duplicates(subset=key_columns, keep='last', inplace=True, ignore_index=True)
         return df.dropna()
 
-    def toDays(self, x, currentime):
-        '''Takes in created_utc time (Unix time, in seconds) and current time. Calculates
-        age and returns the number of days'''
-        d = timedelta(seconds=currentime-x)
-        return d.days
-
-    def convertDatesToDays(self, data, new_column):
-        '''Convert the created_utc time to datetime, fetch the days and place it
-        in a new column. Also removes the original created_utc column'''
-        df = data.copy()
-        now = time.time() #This will differ everytime, but the change will be constant across all the rows.
-        df[new_column] = df.created_utc.map(lambda x: self.toDays(x, now))
-        return df.drop(["created_utc"], axis=1)
-
-    def process(self):
-        self.authordata = self.dropDuplicatesAndEmptyRows(self.authordata, ['author_ids'])
-        self.commentdata = self.dropDuplicatesAndEmptyRows(self.commentdata, ['comment_ids'])
-        self.gilddata = self.dropDuplicatesAndEmptyRows(self.gilddata, ['comment_ids'])
-        self.threaddata = self.dropDuplicatesAndEmptyRows(self.threaddata, ['thread_ids'])
-        authors = self.convertDatesToDays(self.authordata, "acc_age_days")
-        comments = self.convertDatesToDays(self.commentdata, "comment_age_days")
-        commentsAndGilds = self.gilddata.merge(comments, how='outer', on='comment_ids')
-        self.MergedData = commentsAndGilds.merge(authors, how='inner', on='author_ids')
+    def mergeData(self):
+        commentsAndThreads = self.commentdata.merge(self.threaddata, how="left", on="thread_ids", suffixes=("_comment", "_thread"))
+        commentsAndThreads.dropna(inplace=True)
+        commentsAndThreads["comment_age"] =  commentsAndThreads["created_utc_comment"] - commentsAndThreads["created_utc_thread"]
+        commentsAndThreads = commentsAndThreads.filter(["comment_body", "ups", "comment_ids", "edited_comment", "upvotes"
+        , "premium", "num_comments", "author_ids", "comment_age"], axis=1)
+        commentsAndThreads = commentsAndThreads.rename(columns={"upvotes":"Thread_upvotes", "ups":"comment_upvotes"})
+        commentsThreadsGilds = self.gilddata.merge(commentsAndThreads, how='outer', on='comment_ids')
+        self.MergedData = commentsThreadsGilds.merge(self.authordata, how='inner', on='author_ids')
         transformGilds = gildsToBinary()
         self.MergedData, self.targets = transformGilds.transform(self.MergedData)
 
@@ -82,14 +78,14 @@ class preprocess:
         splits = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
         for train_index, test_index in splits.split(self.MergedData, self.targets):
             pass
-        train_data = self.MergedData.iloc[train_index, :]
-        test_data = self.MergedData.iloc[test_index, :]
-        train_data.reset_index(drop=True, inplace=True)
-        test_data.reset_index(drop=True, inplace=True)
-        self.savetoJson(train_data, "train_data_baseline")
-        self.savetoJson(test_data, "test_data_baseline")
+        trainSet = self.MergedData.iloc[train_index, :]
+        testSet = self.MergedData.iloc[test_index, :]
+        trainSet.reset_index(drop=True, inplace=True)
+        testSet.reset_index(drop=True, inplace=True)
+        self.saveJson(trainSet, "trainSet_baseline")
+        self.saveJson(testSet, "testSet_baseline")
 
-    def savetoJson(self, df, filename):
+    def saveJson(self, df, filename):
         Path(self.savepath).mkdir(parents=True, exist_ok=True)
         filename = f"{self.savepath}{filename}.json"
         df.to_json(filename, orient="columns")

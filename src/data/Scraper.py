@@ -31,7 +31,7 @@ class Scraper:
             self.savepath = args.savepath
             self.setDifferentSavepath()
         if args.load:
-            self.loadExistingData()        
+            self.loadExistingData()    
 
     def initializeDataObjects(self):
         self.threaddata = ThreadData()
