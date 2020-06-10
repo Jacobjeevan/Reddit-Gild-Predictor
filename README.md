@@ -30,7 +30,7 @@ Optional: Repeat first stage to predict number of gildings received (regression 
 - 06/06-07: More feature engineering/experimentation (Note: Modified comment age to be calculated in terms of the specific thread it belongs to).
 Reran all models. Logistic Regression performed best.
 
-06/08: Started literature review for outlier detection approach.
+- 06/08: Started literature review for outlier detection approach.
 
 ## Plan:
 

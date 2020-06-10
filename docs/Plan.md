@@ -84,6 +84,23 @@ Data was saved in CSV format.
 
 - 05/19: Stopped scraping. Completed initial EDA.
 
+- 05/20-21: Experimented with Logistic Regression Model (with Resampling).
+
+- 05/22-23: Experimented with SVM Model (Using Gradient Descent due to high volume of data).
+
+- 05/23-25: Experimented with Decision Trees, Random Forests and Ensemble Models (Under progress)
+
+- 05/25-27: Refactoring into classes and utility functions
+
+- 06/01-02: Second stage refactoring (dividing classes into even more meaningful chunks), cleaning up code.
+
+- 06/04-05: Completed Decision Trees
+
+- 06/06-07: More feature engineering/experimentation (Note: Modified comment age to be calculated in terms of the specific thread it belongs to).
+Reran all models. Logistic Regression performed best.
+
+- 06/08: Started literature review for outlier detection approach.
+
 ### Notes:
 
 - Initial scraping was completed on 4/17. As expected, the dataset was heavily imbalanced (out of ~500k comments, there were only ~550 gilded comments). Several approaches can be taken to address the imbalance:
