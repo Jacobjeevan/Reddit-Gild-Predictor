@@ -1,5 +1,18 @@
 # Reddit Gild Predictor
 
+## Why?
+
+The project is primarily for exploration and to check if it's possible to capture complex real world relationships through ML.
+
+*Is it possible to capture general opinions within a subreddit?* If so, what opinions are more likely to get gilded? Is it possible to capture
+such relationships purely without relying on textual data?
+
+NLP techniques such as text abstraction could be used for 'labeling' a comment text (or even summarizing content of reddit thread). 
+
+Can we extract sentiments associated with topics? For instance: Microtransactions are not looked upon favorably by the gaming community, same is true for r/Gaming.
+
+Can we capture such sentiments, without manually labeling the data? And how do these sentiments relate to gild status of a comment?
+
 ## Objectives:
 
 **First stage**: Given a reddit comment and it's attributes (such as number of upvotes, comment author data), build a model
@@ -11,7 +24,7 @@ Optional: Repeat first stage to predict number of gildings received (regression 
 
 **Third stage**: Repeat first and second stages, but use NLP techniques (Using comment body for classification)
 
-**Fourth stage**: Use a model to combine results from both first/second and third stages.
+Optional: Use a model to combine results from both first/second and third stages.
 
 ## Current Progress:
 
