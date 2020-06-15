@@ -1,4 +1,5 @@
 #! usr/bin/env python3
+from sklearn.metrics import f1_score
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import make_scorer
 from sklearn.metrics import confusion_matrix
@@ -31,9 +32,9 @@ class filter_add_attributes(BaseEstimator, TransformerMixin):
         '''Calculates and adds comment body length and account activity (based on frequency of comment author)
         as features. Returns a new dataframe with the added columns.'''
         data = X.copy()
+        data["edited_comment"] = data.edited_comment.astype(bool)
         data["comment_length"] = data.comment_body.apply(lambda x: len(x))
         data["account_activity"] = data.author_ids.map(data.author_ids.value_counts())
         data["is_premium"] = data.is_premium.astype(int)
-        items = ["ups", "comment_karma", "link_karma", "is_premium", "comment_age_days", "acc_age_days", "comment_length", 
-                 "account_activity"]
+        items = ["comment_upvotes", "comment_karma", "link_karma", "is_premium", "comment_age", "edited_comment"]
         return data.filter(items=items, axis=1)

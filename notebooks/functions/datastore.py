@@ -8,8 +8,8 @@ import os
 class DataStore:
     dirname = os.path.dirname(__file__)
     filepath = os.path.join(dirname, "../../data/processed/")
-    train_data = pd.read_csv(f"{filepath}/train_data_baseline.csv")
-    test_data = pd.read_csv(f"{filepath}test_data_baseline.csv")
+    train_data = pd.read_json(f"{filepath}/trainSet_baseline.json")
+    test_data = pd.read_json(f"{filepath}testSet_baseline.json")
     
     def __init__(self):
         self.xTrain = None
