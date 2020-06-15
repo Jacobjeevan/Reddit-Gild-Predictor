@@ -3,7 +3,6 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from utilities import filter_add_attributes
-from pathlib import Path
 import os
 
 class DataStore:

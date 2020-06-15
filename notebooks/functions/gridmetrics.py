@@ -1,5 +1,4 @@
 from metrics import Metrics
-import numpy as np
 
 class GridMetrics(Metrics):
     

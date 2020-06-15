@@ -1,5 +1,4 @@
 #! usr/bin/env python3
-from sklearn.model_selection import cross_validate
 from sklearn.model_selection import GridSearchCV
 from utilities import getScoring
 from gridmetrics import GridMetrics
