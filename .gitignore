@@ -4,3 +4,5 @@ __pycache__/
 .DS_Store
 script.py
 .ipynb_checkpoints/
+.vscode
+test_[a-zA-Z]+.py
