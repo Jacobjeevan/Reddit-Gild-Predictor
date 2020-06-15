@@ -7,9 +7,10 @@ class GildData(Data):
         self.data= {"comment_ids": [], "gildings": []}  
 
     def retrieveData(self, comment):
-        '''Takes in the comment object and retrieves comment gild information; adds it to the list'''
-        self.data["comment_ids"].append(comment.id)
-        self.data["gildings"].append(comment.gildings)
+        commentID =  comment.id
+        if commentID not in self.data["comment_ids"]:
+            self.data["comment_ids"].append(comment.id)
+            self.data["gildings"].append(comment.gildings)
 
     def getLength(self):
         return len(self.data["comment_ids"])

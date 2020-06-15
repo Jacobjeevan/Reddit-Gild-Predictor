@@ -1,5 +1,5 @@
 import pandas as pd
-import argparse, time, json
+import argparse, json
 from CommentData import CommentData
 from AuthorData import AuthorData
 from GildData import GildData
@@ -63,16 +63,23 @@ class preprocess:
         return df.dropna()
 
     def mergeData(self):
+        commentsAndThreads = self.mergeCommentsAndThreads()
+        self.mergeWithGilds(commentsAndThreads)
+        transformGilds = gildsToBinary()
+        self.MergedData, self.targets = transformGilds.transform(self.MergedData)
+    
+    def mergeCommentsAndThreads(self):
         commentsAndThreads = self.commentdata.merge(self.threaddata, how="left", on="thread_ids", suffixes=("_comment", "_thread"))
         commentsAndThreads.dropna(inplace=True)
         commentsAndThreads["comment_age"] =  commentsAndThreads["created_utc_comment"] - commentsAndThreads["created_utc_thread"]
         commentsAndThreads = commentsAndThreads.filter(["comment_body", "ups", "comment_ids", "edited_comment", "upvotes"
         , "premium", "num_comments", "author_ids", "comment_age"], axis=1)
         commentsAndThreads = commentsAndThreads.rename(columns={"upvotes":"Thread_upvotes", "ups":"comment_upvotes"})
+        return commentsAndThreads
+
+    def mergeWithGilds(self, commentsAndThreads):
         commentsThreadsGilds = self.gilddata.merge(commentsAndThreads, how='outer', on='comment_ids')
         self.MergedData = commentsThreadsGilds.merge(self.authordata, how='inner', on='author_ids')
-        transformGilds = gildsToBinary()
-        self.MergedData, self.targets = transformGilds.transform(self.MergedData)
 
     def splitAndSave(self):
         splits = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)

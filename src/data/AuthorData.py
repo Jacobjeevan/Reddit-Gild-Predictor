@@ -1,4 +1,5 @@
 from Data import Data
+import praw
 
 
 class AuthorData(Data):
@@ -16,7 +17,7 @@ class AuthorData(Data):
         else:
             try:
                 self.retrieve()
-            except:
+            except praw.exceptions.RedditAPIException:
                 return
 
     def checkAuthorAlreadyCollected(self):

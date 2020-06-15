@@ -1,4 +1,5 @@
 from Data import Data
+import praw
 
 class ThreadData(Data):
 
@@ -8,12 +9,8 @@ class ThreadData(Data):
         ], "gildings": [], "created_utc": [], "premium": [], "num_comments": [], "edited": []}
 
     def retrieveData(self, submission):
-        if (submission.id in self.getIds()):
-            pass
-        else:
-            self.retrieveSubmission(submission)
-
-    def retrieveSubmission(self, submission):
+        numComments = submission.num_comments
+        print(f"Collecting {numComments} comments")
         self.retrieveThreadAuthor(submission)
         self.data["thread_ids"].append(submission.id)
         self.data["title"].append(submission.title)
@@ -21,13 +18,13 @@ class ThreadData(Data):
         self.data["edited"].append(submission.edited)
         self.data["gildings"].append(submission.gildings)
         self.data["created_utc"].append(submission.created_utc)
-        self.data["num_comments"].append(submission.num_comments)
+        self.data["num_comments"].append(numComments)
 
     def retrieveThreadAuthor(self, submission):
         try:
             self.data["author_ids"].append(submission.author_fullname[3:])
             self.data["premium"].append(submission.author_premium)
-        except:
+        except praw.exceptions.RedditAPIException:
             self.data["author_ids"].append("NaN")
             self.data["premium"].append("NaN")
 

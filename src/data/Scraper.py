@@ -1,6 +1,5 @@
 #! usr/bin/env python3
 import sys
-import os
 import praw
 import time
 import argparse
@@ -15,6 +14,7 @@ class Scraper:
     def __init__(self, args):
         """Parse the arguments"""
         self.exectime = time.time()
+        self.interval = args.checkpoint
         self.checkpoint = args.checkpoint
         self.minimum = args.minimum 
         if self.minimum < self.checkpoint:  # Ensure that minimum is greater than checkpoint
@@ -31,7 +31,8 @@ class Scraper:
             self.savepath = args.savepath
             self.setDifferentSavepath()
         if args.load:
-            self.loadExistingData()    
+            self.loadExistingData()
+            self.checkpoint = self.commentdata.getLength()    
 
     def initializeDataObjects(self):
         self.threaddata = ThreadData()
@@ -54,11 +55,15 @@ class Scraper:
     def scrape(self):
         subreddit = self.subreddit
         for submission in subreddit:
-            self.threaddata.retrieveData(submission)
-            submission.comments.replace_more(limit=None)
-            all_comments = submission.comments.list()
-            for comment in all_comments:
-                self.retrieveAll(comment, submission.id)
+            if (submission.id in self.threaddata.getIds()):
+                print(f"Already collected {submission.num_comments} comments")
+                pass
+            else:
+                self.threaddata.retrieveData(submission)
+                submission.comments.replace_more(limit=None)
+                all_comments = submission.comments.list()
+                for comment in all_comments:
+                    self.retrieveAll(comment, submission.id)
                 self.saveOrExitConditions()
 
     def retrieveAll(self, comment, threadid):
@@ -79,7 +84,7 @@ class Scraper:
         IsSuspended = None
         try:
             IsSuspended = comment.author.is_suspended
-        except:
+        except praw.exceptions.RedditAPIException:
             pass
         if (IsSuspended):
             return True
@@ -98,7 +103,7 @@ class Scraper:
         print("Collected {} comments so far; Saving in progress. Time elapsed: {} hours".format(
             numOfSamples, exectime))
         self.saveAllData()
-        self.checkpoint = 0
+        self.checkpoint += self.interval
 
     def saveAllData(self):
         self.authordata.saveData()
@@ -130,7 +135,7 @@ class Scraper:
                         input("How many more comments do you want to collect?\n"))
                     self.minimum += MoreComments
                     flag = False
-                except:
+                except TypeError:
                     print("Wrong type of input. Please enter valid input.\n")
                     continue
             else:
