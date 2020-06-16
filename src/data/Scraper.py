@@ -57,7 +57,6 @@ class Scraper:
         for submission in subreddit:
             if (submission.id in self.threaddata.getIds()):
                 print(f"Already collected {submission.num_comments} comments")
-                pass
             else:
                 self.threaddata.retrieveData(submission)
                 submission.comments.replace_more(limit=None)

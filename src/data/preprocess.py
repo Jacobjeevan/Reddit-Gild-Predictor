@@ -1,5 +1,5 @@
 import pandas as pd
-import argparse, json
+import argparse
 from CommentData import CommentData
 from AuthorData import AuthorData
 from GildData import GildData
